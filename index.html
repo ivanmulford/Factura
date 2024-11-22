@@ -1,0 +1,125 @@
+
+import fpdf
+
+class Factura:
+    def __init__(self):
+        self.cliente = ""
+        self.producto = ""
+        self.cantidad = 0
+        self.precio_unitario = 0
+        self.total = 0
+        self.historico = []
+
+    def agregar_factura(self, cliente, producto, cantidad, precio_unitario):
+        self.cliente = cliente
+        self.producto = producto
+        self.cantidad = cantidad
+        self.precio_unitario = precio_unitario
+
+    def calcular_total(self):
+        return self.cantidad * self.precio_unitario
+
+    def generar_factura_pdf(self, filename):
+        pdf = fpdf.FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", size=15)
+        pdf.cell(200, 10, txt=f"Factura {date.today()}", ln=True, align='C')
+        pdf.ln(10)
+
+        pdf.set_font("Arial", size=12)
+        pdf.cell(40, 10, txt="Cliente:", ln=False, align='L')
+        pdf.cell(120, 10, txt=self.cliente, ln=False, align='R')
+
+        pdf.ln(5)
+        pdf.cell(40, 10, txt="Producto:", ln=False, align='L')
+        pdf.cell(120, 10, txt=self.producto, ln=False, align='R')
+
+        pdf.ln(5)
+        pdf.cell(40, 10, txt=f"Cantidad: {self.cantidad}", ln=False, align='L')
+        pdf.cell(120, 10, txt=f"Precio Unitario: ${self.precio_unitario:.2f}", ln=False, align='R')
+
+        pdf.ln(5)
+        pdf.cell(40, 10, txt="Total:", ln=False, align='L')
+        pdf.cell(120, 10, txt="${" + str(self.total) + "}", ln=False, align='R')
+
+        pdf.output(filename)
+
+    def mostrar_factura(self):
+        print("Factura:")
+        print(f"Cliente: {self.cliente}")
+        print(f"Producto: {self.producto}")
+        print(f"Cantidad: {self.cantidad}")
+        print(f"Precio Unitario: ${self.precio_unitario:.2f}")
+        print(f"Total: ${self.total}")
+
+factura = Factura()
+
+
+
+Código en HTML
+
+
+
+html
+
+
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Código de la factura</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #factura {
+            width: 80%;
+            height: 500px;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Código de la factura</h1>
+    <div id="factura">
+        <!-- Se mostrará el código de la factura -->
+    </div>
+
+    <script src="factura.js"></script>
+</body>
+</html>
+
+
+
+Código en JavaScript
+
+
+
+javascript
+
+
+
+// Crea una nueva instancia de Factura
+var factura = new Factura();
+
+// Agrega un nuevo cliente, producto y cantidad a la factura
+factura.agregar_factura("Juan Pérez", "Camisa blanca", 1);
+
+// Calcula el total de la factura
+factura.total = factura.cantidad * factura.precio_unitario;
+
+// Mostrar la factura en pantalla
+console.log(factura.mostrar_factura());
+
+// Generar un archivo PDF con la factura
+var pdf = new jsPDF();
+pdf.text("Factura", 10, 10);
+pdf.text(factura.cliente, 10, 20);
+pdf.text(factura.producto,
+
+
+
+       
+        
