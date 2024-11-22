@@ -1,36 +1,147 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Facturación</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        .btn {
+            margin-top: 10px;
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background: #28a745;
+            color: #fff;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .btn:hover {
+            background: #218838;
+        }
+    </style>
 </head>
 <body>
     <h1>Sistema de Facturación</h1>
-    
-    <h2>Crear Nueva Factura</h2>
-    <form id="facturaForm">
-        <label>Cliente:</label>
-        <input type="text" name="cliente" required><br><br>
-        
-        <div id="items">
-            <div class="item">
-                <input type="text" placeholder="Producto">
-                <input type="number" placeholder="Cantidad">
-                <input type="number" step="0.01" placeholder="Precio">
-            </div>
-        </div>
-        
-        <button type="button" onclick="agregarItem()">Agregar Item</button>
-        <button type="submit">Crear Factura</button>
-    </form>
+    <div class="container">
+        <form id="invoiceForm">
+            <label for="clientName">Nombre del Cliente:</label>
+            <input type="text" id="clientName" required><br><br>
 
-    <h2>Facturas Existentes</h2>
-    <ul>
-    {% for factura in facturas %}
-        <li>
-            Factura #{{ factura.numero }} - {{ factura.cliente.nombre }}
-            <a href="/descargar_pdf/{{ factura.archivo_pdf }}">Descargar PDF</a>
-        </li>
-    {% endfor %}
-    </ul>
+            <label for="productDetails">Detalles del Producto:</label>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Precio</th>
+                    </tr>
+                </thead>
+                <tbody id="productTableBody">
+                    <tr>
+                        <td><input type="text" class="productName" required></td>
+                        <td><input type="number" class="productQuantity" value="1" min="1" required></td>
+                        <td><input type="number" class="productPrice" value="0" min="0" required></td>
+                    </tr>
+                </tbody>
+            </table>
+            <button type="button" id="addRow" class="btn">Añadir Producto</button><br>
+
+            <button type="button" id="generateInvoice" class="btn">Generar Factura</button>
+        </form>
+        <div id="invoiceResult" style="margin-top: 20px; display: none;">
+            <h2>Factura Generada</h2>
+            <div id="generatedInvoice"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("addRow").addEventListener("click", function() {
+            const tableBody = document.getElementById("productTableBody");
+            const row = document.createElement("tr");
+
+            row.innerHTML = `
+                <td><input type="text" class="productName" required></td>
+                <td><input type="number" class="productQuantity" value="1" min="1" required></td>
+                <td><input type="number" class="productPrice" value="0" min="0" required></td>
+            `;
+            tableBody.appendChild(row);
+        });
+
+        document.getElementById("generateInvoice").addEventListener("click", function() {
+            const clientName = document.getElementById("clientName").value;
+            const rows = document.querySelectorAll("#productTableBody tr");
+            let total = 0;
+
+            let invoiceHTML = `<p><strong>Cliente:</strong> ${clientName}</p>`;
+            invoiceHTML += `<table>
+                                <thead>
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Cantidad</th>
+                                        <th>Precio</th>
+                                        <th>Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
+
+            rows.forEach(row => {
+                const name = row.querySelector(".productName").value;
+                const quantity = parseFloat(row.querySelector(".productQuantity").value);
+                const price = parseFloat(row.querySelector(".productPrice").value);
+                const subtotal = quantity * price;
+
+                total += subtotal;
+
+                invoiceHTML += `<tr>
+                                    <td>${name}</td>
+                                    <td>${quantity}</td>
+                                    <td>${price.toFixed(2)}</td>
+                                    <td>${subtotal.toFixed(2)}</td>
+                                </tr>`;
+            });
+
+            invoiceHTML += `</tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3"><strong>Total:</strong></td>
+                                    <td><strong>${total.toFixed(2)}</strong></td>
+                                </tr>
+                            </tfoot>
+                        </table>`;
+
+            document.getElementById("generatedInvoice").innerHTML = invoiceHTML;
+            document.getElementById("invoiceResult").style.display = "block";
+        });
+    </script>
 </body>
 </html>
