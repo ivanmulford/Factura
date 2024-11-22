@@ -1,70 +1,7 @@
-﻿A continuación, te muestro cómo convertir el código de la factura en Python a HTML y JavaScript:
-Código original en Python
-
-
-
-python
-
-
-
-import fpdf
-
-class Factura:
-    def __init__(self):
-        self.cliente = ""
-        self.producto = ""
-        self.cantidad = 0
-        self.precio_unitario = 0
-        self.total = 0
-        self.historico = []
-
-    def agregar_factura(self, cliente, producto, cantidad, precio_unitario):
-        self.cliente = cliente
-        self.producto = producto
-        self.cantidad = cantidad
-        self.precio_unitario = precio_unitario
-
-    def calcular_total(self):
-        return self.cantidad * self.precio_unitario
-
-    def generar_factura_pdf(self, filename):
-        pdf = fpdf.FPDF()
-        pdf.add_page()
-        pdf.set_font("Arial", size=15)
-        pdf.cell(200, 10, txt=f"Factura {date.today()}", ln=True, align='C')
-        pdf.ln(10)
-
-        pdf.set_font("Arial", size=12)
-        pdf.cell(40, 10, txt="Cliente:", ln=False, align='L')
-        pdf.cell(120, 10, txt=self.cliente, ln=False, align='R')
-
-        pdf.ln(5)
-        pdf.cell(40, 10, txt="Producto:", ln=False, align='L')
-        pdf.cell(120, 10, txt=self.producto, ln=False, align='R')
-
-        pdf.ln(5)
-        pdf.cell(40, 10, txt=f"Cantidad: {self.cantidad}", ln=False, align='L')
-        pdf.cell(120, 10, txt=f"Precio Unitario: ${self.precio_unitario:.2f}", ln=False, align='R')
-
-        pdf.ln(5)
-        pdf.cell(40, 10, txt="Total:", ln=False, align='L')
-        pdf.cell(120, 10, txt="${" + str(self.total) + "}", ln=False, align='R')
-
-        pdf.output(filename)
-
-    def mostrar_factura(self):
-        print("Factura:")
-        print(f"Cliente: {self.cliente}")
-        print(f"Producto: {self.producto}")
-        print(f"Cantidad: {self.cantidad}")
-        print(f"Precio Unitario: ${self.precio_unitario:.2f}")
-        print(f"Total: ${self.total}")
-
-factura = Factura()
-
-
-
-Código en HTML
+﻿Para mostrar el código como una web, necesitas crear un archivo HTML que contenga el código y luego alojarlo en un servidor web. Aquí te muestro cómo hacerlo:
+Crear un archivo HTML
+Crea un nuevo archivo llamado index.html con un editor de texto.
+Pega el siguiente código:
 
 
 
@@ -101,7 +38,9 @@ html
 
 
 
-Código en JavaScript
+Crear un archivo JavaScript
+Crea un nuevo archivo llamado factura.js con un editor de texto.
+Pega el siguiente código:
 
 
 
@@ -136,4 +75,12 @@ pdf.save(filename);
 
 
 
+Alojar el código en un servidor web
+Crea una cuenta en un proveedor de alojamiento web como HostGator o Bluehost.
+Instala un sistema operativo y un entorno de desarrollo en tu máquina local.
+Copia los archivos index.html y factura.js a la carpeta raíz del servidor web.
+Configura el archivo .htaccess para permitir la ejecución de scripts JavaScript.
+Acceder al código
+Ingresa la dirección IP o el dominio de tu sitio en un navegador web.
+Accede al archivo index.html y verás el código de la factura.
 Recuerda que debes ajustar las variables y los parámetros según sea necesario para que el código funcione correctamente.
