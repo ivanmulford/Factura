@@ -1,86 +1,123 @@
-﻿Para mostrar el código como una web, necesitas crear un archivo HTML que contenga el código y luego alojarlo en un servidor web. Aquí te muestro cómo hacerlo:
-Crear un archivo HTML
-Crea un nuevo archivo llamado index.html con un editor de texto.
-Pega el siguiente código:
+from fpdf import FPDF
+from datetime import datetime
+import json
+import os
+from flask import Flask, render_template, request, send_file
 
+class SistemaFacturacion:
+    def __init__(self):
+        self.facturas = []
+        self.cargar_historico()
+        self.app = Flask(__name__)
+        self.configurar_rutas()
 
+    def cargar_historico(self):
+        if os.path.exists('facturas.json'):
+            with open('facturas.json', 'r') as f:
+                self.facturas = json.load(f)
 
-html
+    def guardar_historico(self):
+        with open('facturas.json', 'w') as f:
+            json.dump(self.facturas, f, indent=4)
 
+    def generar_factura_pdf(self, datos_factura):
+        pdf = FPDF()
+        pdf.add_page()
+        
+        # Configuración de la factura
+        pdf.set_font('Arial', 'B', 16)
+        pdf.cell(190, 10, 'FACTURA', 0, 1, 'C')
+        
+        # Información de la empresa
+        pdf.set_font('Arial', '', 12)
+        pdf.cell(190, 10, f'Fecha: {datos_factura["fecha"]}', 0, 1)
+        pdf.cell(190, 10, f'Número de Factura: {datos_factura["numero"]}', 0, 1)
+        pdf.cell(190, 10, f'Cliente: {datos_factura["cliente"]}', 0, 1)
+        
+        # Detalles de los productos
+        pdf.set_font('Arial', 'B', 12)
+        pdf.cell(80, 10, 'Producto', 1)
+        pdf.cell(35, 10, 'Cantidad', 1)
+        pdf.cell(35, 10, 'Precio', 1)
+        pdf.cell(40, 10, 'Total', 1)
+        pdf.ln()
+        
+        # Productos
+        pdf.set_font('Arial', '', 12)
+        total = 0
+        for item in datos_factura['items']:
+            pdf.cell(80, 10, item['producto'], 1)
+            pdf.cell(35, 10, str(item['cantidad']), 1)
+            pdf.cell(35, 10, f"${item['precio']:.2f}", 1)
+            subtotal = item['cantidad'] * item['precio']
+            pdf.cell(40, 10, f"${subtotal:.2f}", 1)
+            pdf.ln()
+            total += subtotal
+        
+        # Total
+        pdf.cell(150, 10, 'Total:', 1)
+        pdf.cell(40, 10, f"${total:.2f}", 1)
+        
+        # Guardar PDF
+        nombre_archivo = f"factura_{datos_factura['numero']}.pdf"
+        pdf.output(nombre_archivo)
+        return nombre_archivo
 
-
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Código de la factura</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
+    def crear_factura(self, datos_cliente, items):
+        factura = {
+            'numero': len(self.facturas) + 1,
+            'fecha': datetime.now().strftime("%Y-%m-%d"),
+            'cliente': datos_cliente,
+            'items': items
         }
-        #factura {
-            width: 80%;
-            height: 500px;
-            border: 1px solid #ccc;
-            padding: 10px;
-        }
-    </style>
-</head>
-<body>
-    <h1>Código de la factura</h1>
-    <div id="factura">
-        <!-- Se mostrará el código de la factura -->
-    </div>
+        
+        # Generar PDF
+        nombre_pdf = self.generar_factura_pdf(factura)
+        factura['archivo_pdf'] = nombre_pdf
+        
+        # Guardar en histórico
+        self.facturas.append(factura)
+        self.guardar_historico()
+        
+        return factura
 
-    <script src="factura.js"></script>
-</body>
-</html>
+    def configurar_rutas(self):
+        @self.app.route('/')
+        def inicio():
+            return render_template('index.html', facturas=self.facturas)
 
+        @self.app.route('/crear_factura', methods=['POST'])
+        def crear_factura_web():
+            datos_cliente = request.form['cliente']
+            items = json.loads(request.form['items'])
+            factura = self.crear_factura(datos_cliente, items)
+            return {'status': 'success', 'factura': factura}
 
+        @self.app.route('/descargar_pdf/<nombre_archivo>')
+        def descargar_pdf(nombre_archivo):
+            return send_file(nombre_archivo, as_attachment=True)
 
-Crear un archivo JavaScript
-Crea un nuevo archivo llamado factura.js con un editor de texto.
-Pega el siguiente código:
+    def iniciar_servidor(self, puerto=5000):
+        self.app.run(port=puerto)
 
-
-
-javascript
-
-
-
-// Crea una nueva instancia de Factura
-var factura = new Factura();
-
-// Agrega un nuevo cliente, producto y cantidad a la factura
-factura.agregar_factura("Juan Pérez", "Camisa blanca", 1);
-
-// Calcula el total de la factura
-factura.total = factura.cantidad * factura.precio_unitario;
-
-// Mostrar la factura en pantalla
-console.log(factura.mostrar_factura());
-
-// Generar un archivo PDF con la factura
-var pdf = new jsPDF();
-pdf.text("Factura", 10, 10);
-pdf.text(factura.cliente, 10, 20);
-pdf.text(factura.producto, 10, 30);
-pdf.text(`Cantidad: ${factura.cantidad}`, 10, 40);
-pdf.text(`Precio Unitario: $${factura.precio_unitario.toFixed(2)}`, 10, 50);
-pdf.text(`Total: $${factura.total}`, 10, 60);
-
-// Guarda el archivo PDF
-var filename = "factura.pdf";
-pdf.save(filename);
-
-
-
-Alojar el código en un servidor web
-Crea una cuenta en un proveedor de alojamiento web como HostGator o Bluehost.
-Instala un sistema operativo y un entorno de desarrollo en tu máquina local.
-Copia los archivos index.html y factura.js a la carpeta raíz del servidor web.
-Configura el archivo .htaccess para permitir la ejecución de scripts JavaScript.
-Acceder al código
-Ingresa la dirección IP o el dominio de tu sitio en un navegador web.
-Accede al archivo index.html y verás el código de la factura.
-Recuerda que debes ajustar las variables y los parámetros según sea necesario para que el código funcione correctamente.
+# Ejemplo de uso
+if __name__ == "__main__":
+    sistema = SistemaFacturacion()
+    
+    # Ejemplo de creación de factura
+    datos_cliente = {
+        "nombre": "Juan Pérez",
+        "direccion": "Calle Principal 123",
+        "telefono": "555-0123"
+    }
+    
+    items = [
+        {"producto": "Laptop", "cantidad": 1, "precio": 999.99},
+        {"producto": "Mouse", "cantidad": 2, "precio": 29.99}
+    ]
+    
+    # Crear factura
+    factura = sistema.crear_factura(datos_cliente, items)
+    
+    # Iniciar servidor web
+    sistema.iniciar_servidor()
