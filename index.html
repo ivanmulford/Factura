@@ -1,123 +1,36 @@
-from fpdf import FPDF
-from datetime import datetime
-import json
-import os
-from flask import Flask, render_template, request, send_file
-
-class SistemaFacturacion:
-    def __init__(self):
-        self.facturas = []
-        self.cargar_historico()
-        self.app = Flask(__name__)
-        self.configurar_rutas()
-
-    def cargar_historico(self):
-        if os.path.exists('facturas.json'):
-            with open('facturas.json', 'r') as f:
-                self.facturas = json.load(f)
-
-    def guardar_historico(self):
-        with open('facturas.json', 'w') as f:
-            json.dump(self.facturas, f, indent=4)
-
-    def generar_factura_pdf(self, datos_factura):
-        pdf = FPDF()
-        pdf.add_page()
-        
-        # Configuración de la factura
-        pdf.set_font('Arial', 'B', 16)
-        pdf.cell(190, 10, 'FACTURA', 0, 1, 'C')
-        
-        # Información de la empresa
-        pdf.set_font('Arial', '', 12)
-        pdf.cell(190, 10, f'Fecha: {datos_factura["fecha"]}', 0, 1)
-        pdf.cell(190, 10, f'Número de Factura: {datos_factura["numero"]}', 0, 1)
-        pdf.cell(190, 10, f'Cliente: {datos_factura["cliente"]}', 0, 1)
-        
-        # Detalles de los productos
-        pdf.set_font('Arial', 'B', 12)
-        pdf.cell(80, 10, 'Producto', 1)
-        pdf.cell(35, 10, 'Cantidad', 1)
-        pdf.cell(35, 10, 'Precio', 1)
-        pdf.cell(40, 10, 'Total', 1)
-        pdf.ln()
-        
-        # Productos
-        pdf.set_font('Arial', '', 12)
-        total = 0
-        for item in datos_factura['items']:
-            pdf.cell(80, 10, item['producto'], 1)
-            pdf.cell(35, 10, str(item['cantidad']), 1)
-            pdf.cell(35, 10, f"${item['precio']:.2f}", 1)
-            subtotal = item['cantidad'] * item['precio']
-            pdf.cell(40, 10, f"${subtotal:.2f}", 1)
-            pdf.ln()
-            total += subtotal
-        
-        # Total
-        pdf.cell(150, 10, 'Total:', 1)
-        pdf.cell(40, 10, f"${total:.2f}", 1)
-        
-        # Guardar PDF
-        nombre_archivo = f"factura_{datos_factura['numero']}.pdf"
-        pdf.output(nombre_archivo)
-        return nombre_archivo
-
-    def crear_factura(self, datos_cliente, items):
-        factura = {
-            'numero': len(self.facturas) + 1,
-            'fecha': datetime.now().strftime("%Y-%m-%d"),
-            'cliente': datos_cliente,
-            'items': items
-        }
-        
-        # Generar PDF
-        nombre_pdf = self.generar_factura_pdf(factura)
-        factura['archivo_pdf'] = nombre_pdf
-        
-        # Guardar en histórico
-        self.facturas.append(factura)
-        self.guardar_historico()
-        
-        return factura
-
-    def configurar_rutas(self):
-        @self.app.route('/')
-        def inicio():
-            return render_template('index.html', facturas=self.facturas)
-
-        @self.app.route('/crear_factura', methods=['POST'])
-        def crear_factura_web():
-            datos_cliente = request.form['cliente']
-            items = json.loads(request.form['items'])
-            factura = self.crear_factura(datos_cliente, items)
-            return {'status': 'success', 'factura': factura}
-
-        @self.app.route('/descargar_pdf/<nombre_archivo>')
-        def descargar_pdf(nombre_archivo):
-            return send_file(nombre_archivo, as_attachment=True)
-
-    def iniciar_servidor(self, puerto=5000):
-        self.app.run(port=puerto)
-
-# Ejemplo de uso
-if __name__ == "__main__":
-    sistema = SistemaFacturacion()
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sistema de Facturación</title>
+</head>
+<body>
+    <h1>Sistema de Facturación</h1>
     
-    # Ejemplo de creación de factura
-    datos_cliente = {
-        "nombre": "Juan Pérez",
-        "direccion": "Calle Principal 123",
-        "telefono": "555-0123"
-    }
-    
-    items = [
-        {"producto": "Laptop", "cantidad": 1, "precio": 999.99},
-        {"producto": "Mouse", "cantidad": 2, "precio": 29.99}
-    ]
-    
-    # Crear factura
-    factura = sistema.crear_factura(datos_cliente, items)
-    
-    # Iniciar servidor web
-    sistema.iniciar_servidor()
+    <h2>Crear Nueva Factura</h2>
+    <form id="facturaForm">
+        <label>Cliente:</label>
+        <input type="text" name="cliente" required><br><br>
+        
+        <div id="items">
+            <div class="item">
+                <input type="text" placeholder="Producto">
+                <input type="number" placeholder="Cantidad">
+                <input type="number" step="0.01" placeholder="Precio">
+            </div>
+        </div>
+        
+        <button type="button" onclick="agregarItem()">Agregar Item</button>
+        <button type="submit">Crear Factura</button>
+    </form>
+
+    <h2>Facturas Existentes</h2>
+    <ul>
+    {% for factura in facturas %}
+        <li>
+            Factura #{{ factura.numero }} - {{ factura.cliente.nombre }}
+            <a href="/descargar_pdf/{{ factura.archivo_pdf }}">Descargar PDF</a>
+        </li>
+    {% endfor %}
+    </ul>
+</body>
+</html>
