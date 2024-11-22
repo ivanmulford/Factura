@@ -1,3 +1,11 @@
+﻿A continuación, te muestro cómo convertir el código de la factura en Python a HTML y JavaScript:
+Código original en Python
+
+
+
+python
+
+
 
 import fpdf
 
@@ -117,9 +125,15 @@ console.log(factura.mostrar_factura());
 var pdf = new jsPDF();
 pdf.text("Factura", 10, 10);
 pdf.text(factura.cliente, 10, 20);
-pdf.text(factura.producto,
+pdf.text(factura.producto, 10, 30);
+pdf.text(`Cantidad: ${factura.cantidad}`, 10, 40);
+pdf.text(`Precio Unitario: $${factura.precio_unitario.toFixed(2)}`, 10, 50);
+pdf.text(`Total: $${factura.total}`, 10, 60);
+
+// Guarda el archivo PDF
+var filename = "factura.pdf";
+pdf.save(filename);
 
 
 
-       
-        
+Recuerda que debes ajustar las variables y los parámetros según sea necesario para que el código funcione correctamente.
